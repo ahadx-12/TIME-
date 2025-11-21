@@ -1,26 +1,52 @@
-import os
+###############################################################
+# EARLY PATH FIX  (must be BEFORE ANY IMPORTS)
+###############################################################
 import sys
+import traceback
 from pathlib import Path
 
-APP_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = APP_DIR.parent
+print("BOOT: main.py starting…", flush=True)
 
-for path in (APP_DIR, PROJECT_ROOT):
-    path_str = str(path)
-    if path_str not in sys.path:
-        sys.path.insert(0, path_str)
+try:
+    APP_DIR = Path(__file__).resolve().parent
+    PROJECT_ROOT = APP_DIR.parent
 
+    # Ensure correct import paths BEFORE loading modules
+    for path in (APP_DIR, PROJECT_ROOT):
+        path_str = str(path)
+        if path_str not in sys.path:
+            sys.path.insert(0, path_str)
+
+    print("BOOT: Importing Streamlit…", flush=True)
+    import streamlit as st
+    print("BOOT: Streamlit imported", flush=True)
+
+    print("BOOT: Importing visuals…", flush=True)
+    from visuals import render_light_cones
+    print("BOOT: visuals imported", flush=True)
+
+    print("BOOT: Importing core modules…", flush=True)
+    from core.physics import GodelUniverse
+    from core.simulation import run_batch_simulation
+    print("BOOT: core modules imported", flush=True)
+
+except Exception as e:
+    print("CRASH DURING STARTUP:", e, flush=True)
+    traceback.print_exc()
+    sys.exit(1)
+
+###############################################################
+# NORMAL IMPORTS AFTER BOOT SUCCESS
+###############################################################
+import os
 import pandas as pd
-import streamlit as st
+
+print("System: ONLINE", flush=True)
 
 
-print("System: ONLINE")
-
-from visuals import render_light_cones
-from core.physics import GodelUniverse
-from core.simulation import run_batch_simulation
-
-
+###############################################################
+# STREAMLIT PAGE CONFIG
+###############################################################
 st.set_page_config(
     page_title="ETERNAL_RETURN: Project Nietzsche",
     page_icon="🌀",
@@ -52,6 +78,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+###############################################################
+# UI
+###############################################################
+
 st.title("🌀 ETERNAL_RETURN: Project Nietzsche")
 st.caption("Gödel geometry × Nietzschean time × Information-theoretic constraints")
 
@@ -61,6 +91,7 @@ with st.sidebar:
     max_complexity = st.slider("Max Complexity (Entropy)", 50, 500, 200, 10)
     noise_level = st.slider("Noise Level", 0.0, 0.8, 0.5, 0.05)
     run_sim = st.button("RUN MONTE CARLO SIMULATION")
+
 
 if "latest_results" not in st.session_state:
     st.session_state["latest_results"] = None
@@ -79,6 +110,10 @@ else:
 
 tabs = st.tabs(["Spacetime Geometry", "Information Constraints"])
 
+
+###############################################################
+# TAB 1: Gödel Spacetime Geometry
+###############################################################
 with tabs[0]:
     st.subheader("Spacetime Geometry: Light Cone Tipping")
     fig = render_light_cones(omega)
@@ -91,6 +126,10 @@ with tabs[0]:
     else:
         st.markdown("**Critical Radius:** No CTC region detected in scan range.")
 
+
+###############################################################
+# TAB 2: Entropy-based Eternal Return Constraints
+###############################################################
 with tabs[1]:
     st.subheader("Information Constraints: Entropy vs Eternal Return")
     df = st.session_state.get("latest_results")
@@ -98,23 +137,19 @@ with tabs[1]:
     if df is not None:
         chart_data = df.set_index("complexity")["survival_rate"]
         st.line_chart(chart_data)
+
         last_row = df.iloc[-1]
         surv = float(last_row["survival_rate"])
+
         st.markdown(
             f"**Survival Rate at Complexity {int(last_row['complexity'])}:** {surv:.4f}"
         )
 
         if surv < 0.001:
-            st.markdown(
-                "🟥 **Status:** ETERNAL RETURN IMPOSSIBLE FOR THIS COMPLEXITY (ENTROPY TOO HIGH)."
-            )
+            st.markdown("🟥 **Status:** ETERNAL RETURN IMPOSSIBLE FOR THIS COMPLEXITY.")
         elif surv > 0.5:
-            st.markdown(
-                "🟩 **Status:** RETURN REGION DETECTED (LOW ENTROPY LOOP)."
-            )
+            st.markdown("🟩 **Status:** RETURN REGION DETECTED.")
         else:
-            st.markdown(
-                "🟨 **Status:** RETURN HIGHLY SUPPRESSED BUT NOT IMPOSSIBLE."
-            )
+            st.markdown("🟨 **Status:** RETURN SUPPRESSED BUT NOT IMPOSSIBLE.")
     else:
         st.info("Run the Monte Carlo simulation to see entropy constraints.")
