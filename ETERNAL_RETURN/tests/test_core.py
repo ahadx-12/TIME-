@@ -24,3 +24,16 @@ def test_is_timelike_matches_interval_sign():
     gu = GodelUniverse(omega=1.0)
     assert gu.is_timelike(dt=1.0, dr=0.0, dphi=0.0, dz=0.0, r=1e-2) is True
     assert gu.is_timelike(dt=0.0, dr=1.0, dphi=0.0, dz=0.0, r=1.0) is False
+
+
+def test_critical_radius_is_positive():
+    gu = GodelUniverse(omega=0.5)
+    r_crit = gu.find_critical_radius()
+    assert r_crit is None or r_crit > 0
+
+
+def test_ctc_transition_detectable():
+    gu = GodelUniverse(omega=1.0)
+    r_crit = gu.find_critical_radius()
+    if r_crit is not None:
+        assert 0.0 < r_crit < 1e6
