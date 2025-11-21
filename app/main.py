@@ -1,48 +1,10 @@
-###############################################################
-# EARLY PATH FIX  (must be BEFORE ANY IMPORTS)
-###############################################################
-import sys
-import traceback
-from pathlib import Path
-
-print("BOOT: main.py starting…", flush=True)
-
-try:
-    APP_DIR = Path(__file__).resolve().parent
-    PROJECT_ROOT = APP_DIR.parent
-
-    # Ensure correct import paths BEFORE loading modules
-    for path in (APP_DIR, PROJECT_ROOT):
-        path_str = str(path)
-        if path_str not in sys.path:
-            sys.path.insert(0, path_str)
-
-    print("BOOT: Importing Streamlit…", flush=True)
-    import streamlit as st
-    print("BOOT: Streamlit imported", flush=True)
-
-    print("BOOT: Importing visuals…", flush=True)
-    from visuals import render_light_cones
-    print("BOOT: visuals imported", flush=True)
-
-    print("BOOT: Importing core modules…", flush=True)
-    from core.physics import GodelUniverse
-    from core.simulation import run_batch_simulation
-    print("BOOT: core modules imported", flush=True)
-
-except Exception as e:
-    print("CRASH DURING STARTUP:", e, flush=True)
-    traceback.print_exc()
-    sys.exit(1)
-
-###############################################################
-# NORMAL IMPORTS AFTER BOOT SUCCESS
-###############################################################
 import os
 import pandas as pd
+import streamlit as st
 
-print("System: ONLINE", flush=True)
-
+from app.visuals import render_light_cones
+from core.physics import GodelUniverse
+from core.simulation import run_batch_simulation
 
 ###############################################################
 # STREAMLIT PAGE CONFIG
@@ -65,10 +27,10 @@ st.markdown(
         background-color: #0e1117;
         color: #f5f5f5;
     }
-    .stTabs [data-baseweb="tab-list"] {
+    .stTabs [data-baseweb=\"tab-list\"] {
         gap: 0.5rem;
     }
-    .stTabs [data-baseweb="tab"] {
+    .stTabs [data-baseweb=\"tab\"] {
         background: #111827;
         padding: 0.75rem 1rem;
         border-radius: 0.5rem 0.5rem 0 0;
