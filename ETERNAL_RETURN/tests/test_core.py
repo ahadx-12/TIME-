@@ -1,6 +1,8 @@
 import numpy as np
 
 from core.physics import GodelUniverse
+from core.entropy import TimeLoopConsistency
+from core.simulation import run_batch_simulation
 
 
 def test_environment_smoke():
@@ -37,3 +39,24 @@ def test_ctc_transition_detectable():
     r_crit = gu.find_critical_radius()
     if r_crit is not None:
         assert 0.0 < r_crit < 1e6
+
+
+def test_simple_state_always_survives_when_no_noise():
+    tlc = TimeLoopConsistency(rng_seed=42)
+    results = [tlc.simulate_loop(complexity_score=1, noise_level=0.0) for _ in range(50)]
+    assert all(results)
+
+
+def test_complex_state_rarely_survives_with_noise():
+    tlc = TimeLoopConsistency(rng_seed=42)
+    results = [tlc.simulate_loop(complexity_score=1000, noise_level=0.5) for _ in range(100)]
+    survival_rate = sum(results) / len(results)
+    assert survival_rate < 0.2
+
+
+def test_simulation_generates_decay_curve():
+    df = run_batch_simulation(max_complexity=20, iterations=100, noise_level=0.5, rng_seed=123)
+    assert not df.empty
+    low = df[df["complexity"] <= 3]["survival_rate"].mean()
+    high = df[df["complexity"] >= 18]["survival_rate"].mean()
+    assert high < low
