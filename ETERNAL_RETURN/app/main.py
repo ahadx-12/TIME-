@@ -2,6 +2,9 @@ import os
 import pandas as pd
 import streamlit as st
 
+
+print("System: ONLINE")
+
 from app.visuals import render_light_cones
 from core.physics import GodelUniverse
 from core.simulation import run_batch_simulation
