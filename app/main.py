@@ -1,11 +1,22 @@
 import os
+import sys
+from pathlib import Path
+
+APP_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = APP_DIR.parent
+
+for path in (APP_DIR, PROJECT_ROOT):
+    path_str = str(path)
+    if path_str not in sys.path:
+        sys.path.insert(0, path_str)
+
 import pandas as pd
 import streamlit as st
 
 
 print("System: ONLINE")
 
-from app.visuals import render_light_cones
+from visuals import render_light_cones
 from core.physics import GodelUniverse
 from core.simulation import run_batch_simulation
 
