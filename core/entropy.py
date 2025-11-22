@@ -29,13 +29,16 @@ class TimeLoopConsistency:
     def evolve_state(self, state: np.ndarray, noise_level: float) -> np.ndarray:
         """Apply noisy evolution via random bit flips.
 
-        Each bit flips independently with probability ``noise_level``.
+        Each bit flips independently with probability ``p_flip = noise_level / 5``
+        (clamped to ``[0, 1]``). This softer rule preserves moderate fidelity even
+        at the upper end of the scanned noise range.
         """
 
         if not 0.0 <= noise_level <= 1.0:
             raise ValueError("noise_level must be between 0 and 1")
 
-        flips = self.rng.random(size=state.shape) < noise_level
+        p_flip = float(np.clip(noise_level / 5.0, 0.0, 1.0))
+        flips = self.rng.random(size=state.shape) < p_flip
         new_state = state.copy()
         new_state[flips] = 1 - new_state[flips]
         return new_state

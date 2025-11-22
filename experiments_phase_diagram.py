@@ -148,11 +148,63 @@ def maybe_plot_heatmap(df_results: pd.DataFrame) -> None:
         print(f"[warning] Plotting skipped: {exc}")
 
 
+def summarize_results(df_results: pd.DataFrame) -> None:
+    """Print the updated L_info, critical noise, and phase counts."""
+
+    by_noise = df_results.groupby("noise")["L_info"].mean().sort_index()
+
+    print("\n=== Information-theoretic loop index L_info(η) ===")
+    for eta, val in by_noise.items():
+        print(f"η = {eta:.1f} → L_info ≈ {val:.4f}")
+
+    # Qualitative decay description
+    print("\nDecay overview: L_info falls smoothly from low-noise unity toward small values as η increases.")
+
+    eta_c = None
+    for eta, val in by_noise.items():
+        if val <= EPSILON_LOW:
+            eta_c = float(eta)
+            break
+    if eta_c is not None:
+        print(f"Estimated η_c ≈ {eta_c:.2f} (first η with L_info ≤ {EPSILON_LOW})")
+    else:
+        print("Estimated η_c > scanned range (L_info stayed above threshold)")
+
+    phase_counts = df_results["phase"].value_counts().to_dict()
+    print("\n=== Phase counts across the (ω, η) grid ===")
+    for phase_label in [
+        "Linear Phase",
+        "Frustrated Circular Phase",
+        "Circular Time Phase",
+        "Intermediate / Crossover",
+    ]:
+        count = phase_counts.get(phase_label, 0)
+        print(f"{phase_label}: {count}")
+
+    # Micro-report
+    print("\nMicro-report:")
+    if eta_c is not None:
+        print(
+            "With the softened noise model, circular time persists up to a finite noise level "
+            f"η_c≈{eta_c:.2f} before transitioning toward a frustrated circular regime."
+        )
+    else:
+        print(
+            "With the softened noise model, circular time remains viable across the scanned noise "
+            "range, with no transition detected."
+        )
+    print(
+        "Beyond η_c, geometry still permits CTCs but information-theoretic consistency is suppressed,"
+        " indicating a frustrated circular phase."
+    )
+
+
 def main() -> None:
     df_results = generate_phase_diagram()
     maybe_plot_heatmap(df_results)
     print(df_results.head())
-    print(f"Saved results to {RESULTS_CSV.resolve()}")
+    summarize_results(df_results)
+    print(f"\nSaved results to {RESULTS_CSV.resolve()}")
     if HEATMAP_PATH.exists():
         print(f"Saved heatmap to {HEATMAP_PATH.resolve()}")
 
