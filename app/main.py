@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import streamlit as st
 
-from app.visuals import render_light_cones
+from visuals import render_light_cones
 from core.physics import GodelUniverse
 from core.simulation import run_batch_simulation
 
